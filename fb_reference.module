@@ -19,7 +19,7 @@ function fb_reference_field_info() {
       'label' => t('Freebase reference'),
       'description' => t('Freebase reference for selecting Freebase topics.'),
       'default_widget' => 'fb_reference_autocomplete',
-      'default_formatter' => 'fb_reference_simple_text',
+      'default_formatter' => 'fb_reference_combined_text',
     ),
   );
 }
@@ -51,9 +51,20 @@ function fb_reference_field_is_empty($item, $field) {
  */
 function fb_reference_field_formatter_info() {
   return array(
-    // This formatter just displays the hex value in the color indicated.
-    'fb_reference_simple_text' => array(
-      'label' => t('Freebase Simple text-based formatter'),
+    // Topic name + mid e.g. 'Fish [mid: /m/234sdf]'
+    'fb_reference_combined_text' => array(
+      'label' => t('Freebase reference combined topic name + mid formatter'),
+      'field types' => array('fb_reference'),
+    ),
+    // mid
+    'fb_reference_mid' => array(
+      'label' => t('Freebase reference mid formatter'),
+      'field types' => array('fb_reference'),
+    ),
+
+    // mid
+    'fb_reference_name' => array(
+      'label' => t('Freebase reference topic name formatter'),
       'field types' => array('fb_reference'),
     ),
   );
@@ -66,10 +77,23 @@ function fb_reference_field_formatter_view($entity_type, $entity, $field, $insta
   $element = array();
 
   switch ($display['type']) {
-    // This formatter simply outputs the field as text and with a color.
-    case 'fb_reference_simple_text':
+
+    // Combined name + mid
+    case 'fb_reference_combined_text':
       foreach ($items as $delta => $item) {
         $element[$delta]['#markup'] = $item['name'] . " [mid: " . $item['mid'] . "]";
+      }
+      break;
+
+    case 'fb_reference_mid':
+      foreach ($items as $delta => $item) {
+        $element[$delta]['#markup'] = $item['mid'];
+      }
+      break;
+
+    case 'fb_reference_name':
+      foreach ($items as $delta => $item) {
+        $element[$delta]['#markup'] = $item['name'];
       }
       break;
   }
