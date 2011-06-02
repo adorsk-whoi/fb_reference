@@ -19,11 +19,22 @@
           */
 
 
-          $(".fb_reference-autocomplete").each(function(delta, input){
+          $(".fb_reference-suggest").each(function(delta, input){
+
+                  // Get the instance id.
+                  var instance_id = $(input).attr('fb_reference-instance_id');
+
+                  // Get the settings for the instance.
+                  var instance_settings = Drupal.settings.fb_reference["instance_" + instance_id];
+
+                  console.log("is, ", instance_settings);
+
                   $(input).suggest({
                           service_url: "http://api.freebase.com",
                           service_path: "/api/service/search",
-                          flyout_service_url: "http://www.freebase.com"
+                          flyout_service_url: "http://www.freebase.com",
+                              type: instance_settings["fb_type_filter"]
+
                       });
 
                   var suggest_data = $(input).data("suggest");
