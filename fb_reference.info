@@ -1,0 +1,6 @@
+name = Freebase Reference
+description = A Freebase Reference field.
+package = Freebase
+core = 7.x
+
+

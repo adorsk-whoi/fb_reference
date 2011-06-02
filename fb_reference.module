@@ -1,0 +1,209 @@
+<?php
+
+/**
+ * @file
+ * A Freebase reference field.
+ */
+
+/***************************************************************
+ * Field Type API hooks
+ ***************************************************************/
+
+/**
+ * Implements hook_field_info().
+ *
+ */
+function fb_reference_field_info() {
+  return array(
+    'fb_reference' => array(
+      'label' => t('Freebase reference'),
+      'description' => t('Freebase reference for selecting Freebase topics.'),
+      'default_widget' => 'fb_reference_autocomplete',
+      'default_formatter' => 'fb_reference_simple_text',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_validate().
+ *
+ */
+function fb_reference_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+}
+
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function fb_reference_field_is_empty($item, $field) {
+  return empty($item['mid']);
+}
+
+/***********************************************************************
+ *  Field Type API: Formatter
+ *
+ *  These are the api hooks that present formatted (themed) output to the
+ *  user.
+ **********************************************************************/
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function fb_reference_field_formatter_info() {
+  return array(
+    // This formatter just displays the hex value in the color indicated.
+    'fb_reference_simple_text' => array(
+      'label' => t('Freebase Simple text-based formatter'),
+      'field types' => array('fb_reference'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function fb_reference_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
+  switch ($display['type']) {
+    // This formatter simply outputs the field as text and with a color.
+    case 'fb_reference_simple_text':
+      foreach ($items as $delta => $item) {
+        $element[$delta]['#markup'] = $item['name'] . " [mid: " . $item['mid'] . "]";
+      }
+      break;
+  }
+
+  return $element;
+}
+
+
+/**************************************************************************
+ * Field Type API: Widget
+ *
+ * The widget is the form element used to receive input from the user
+ * when the field is being populated.
+ **************************************************************************/
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function fb_reference_field_widget_info() {
+  return array(
+    'fb_reference_autocomplete' => array(
+      'label' => t('Freebase suggest widget'),
+      'field types' => array('fb_reference'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ *
+ */
+function fb_reference_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+
+  $value = ( isset($items[$delta]['mid']) && isset($items[$delta]['name']) ) ? $items[$delta]['name'] . " [mid: " . $items[$delta]['mid'] . "]" : '';
+
+  $element += array(
+    '#delta' => $delta,
+  );
+
+  $element['fb_ref'] = array();
+
+  switch ($instance['widget']['type']) {
+
+    case 'fb_reference_autocomplete':
+
+      $element += array(
+        '#type' => 'fieldset',
+
+        '#delta' => $delta,
+        '#attached' => array(
+          'css' => array(
+            'http://freebaselibs.com/static/suggest/1.3/suggest.min.css' => array('type' => 'external')
+          ),
+          'js' => array(
+            drupal_get_path('module', 'fb_reference') . '/fb_reference.js',
+            'http://freebaselibs.com/static/suggest/1.3/suggest.min.js' => array('type' => 'external'),
+          ),
+        ),
+        '#element_validate' => array('fb_reference_autocomplete_validate'),
+      );
+
+      $element['fb_ref_input'] = array(
+        '#type' => 'textfield',
+        '#default_value' => $value,
+        '#attributes' => array('class' => array('fb_reference-autocomplete')),
+      );
+      $element['mid'] = array(
+        '#type' => 'hidden',
+      );
+      $element['name'] = array(
+        '#type' => 'hidden',
+      );
+
+      break;
+  }
+
+  return $element;
+
+}
+
+
+
+/**
+ * Value callback for a node_reference autocomplete element.
+ *
+ * Replace the node nid with a node title.
+ */
+function fb_reference_autocomplete_value($element, $input = FALSE, $form_state) {
+  if ($input === FALSE) {
+    // We're building the displayed 'default value': expand the raw nid into
+    // "node title [nid:n]".
+    $mid = $element['#default_value'];
+  }
+}
+
+/**
+ * Validation callback for a node_reference autocomplete element.
+ */
+function fb_reference_autocomplete_validate($element, &$form_state, $form) {
+
+  $field = field_widget_field($element, $form_state);
+  $field_name = $field['field_name'];
+
+  $delta = $element['#delta'];
+
+  $value = $form_state['values'][$field_name][$element['#language']][$delta]['fb_ref_input'];
+
+  #$value = $element['#value'];
+
+  if (! empty($value)) {
+
+    // If there was valid "XXX: [mid: xxx ]" input.
+    preg_match('/^(?:\s*|(.*) )?\[\s*mid\s*:\s*(\S+)\s*\]$/', $value, $matches);
+    if (! empty($matches)) {
+
+      // Set the elemtent's name and mid values to the corresponding values.
+      form_set_value($element, array("name" => $matches[1], "mid" => $matches[2]), $form_state);
+    }
+
+    // Otherwise if the input was not valid, set an error for the instance.
+    else {
+      $instance = field_widget_instance($element, $form_state);
+      form_error($element, t('%name: invalid input.  Input must be of the form "Name [mid: XXX]', array('%name' => $instance['label'])));
+    }
+  }
+}
+
+
+
+
+/**
+ * Implements hook_field_widget_error().
+ */
+function fb_reference_field_widget_error($element, $error, $form, &$form_state) {
+}
+
+

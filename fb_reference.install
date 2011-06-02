@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the field_example module.
+ */
+
+/**
+ * Implements hook_field_schema().
+ */
+function fb_reference_field_schema($field) {
+  $columns = array(
+    'mid' => array(
+      'type' => 'varchar',
+      'length' => '255',
+      'not null' => FALSE
+    ),
+    'name' => array(
+      'type' => 'varchar',
+      'length' => '255',
+      'not null' => FALSE
+    ),
+  );
+  $indexes = array(
+    'mid' => array('mid'),
+    'name' => array('name')
+  );
+  return array(
+    'columns' => $columns,
+    'indexes' => $indexes,
+  );
+}
