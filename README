@@ -1,0 +1,6 @@
+This module defines a 'Freebase Reference' field.  This field can be used to reference Freebase topics from within Drupal.
+
+Possible uses:
+
+* Controlled vocabularies anywhere: take advantage of Freebase's comprehensive database and persistent ids to use Freebase topics as controlled vocabulary terms.  For example, use the '/film/director' topic to limit entries to Film directors listed in Freebase.
+
