@@ -8,7 +8,7 @@
 /**
  * Implements hook_field_schema().
  */
-function fb_reference_field_schema($field) {
+function freebase_reference_field_schema($field) {
   $columns = array(
     'mid' => array(
       'type' => 'varchar',
